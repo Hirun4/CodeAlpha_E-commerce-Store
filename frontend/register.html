@@ -36,12 +36,6 @@
                     <textarea id="address" name="address" rows="3"></textarea>
                 </div>
                 <div class="form-group">
-                    <label>
-                        <input type="checkbox" id="isAdmin" name="isAdmin">
-                        Register as Admin
-                    </label>
-                </div>
-                <div class="form-group">
                     <button type="submit" class="btn btn-primary">Register</button>
                 </div>
             </form>
@@ -66,7 +60,6 @@
                 }
             };
             if (this.address) data.address.street = this.address.value;
-            if (this.isAdmin && this.isAdmin.checked) data.role = 'admin'; // <-- Add this line
             const res = await apiRequest('/auth/register', 'POST', data);
             if (res.token) {
                 localStorage.setItem('token', res.token);

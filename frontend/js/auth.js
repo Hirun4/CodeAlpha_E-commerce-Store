@@ -11,6 +11,7 @@ document.getElementById('registerForm')?.addEventListener('submit', async functi
         }
     };
     if (this.address) data.address.street = this.address.value;
+    // Do NOT set data.role here!
     const res = await apiRequest('/auth/register', 'POST', data);
     if (res.token) {
         localStorage.setItem('token', res.token);
