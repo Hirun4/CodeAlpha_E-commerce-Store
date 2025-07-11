@@ -18,37 +18,31 @@ exports.uploadMiddleware = upload.single('image');
 
 exports.getAllProducts = async (req, res) => {
   try {
-    const { category, search, sort, page = 1, limit = 10 } = req.query;
-    
-    let query = {};
-    
-    if (category) query.category = category;
+    const { search, category, sort } = req.query;
+    let filter = {};
+
     if (search) {
-      query.$or = [
+      // Match if any part of name or category contains the search string (case-insensitive)
+      filter.$or = [
         { name: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } }
+        { category: { $regex: search, $options: 'i' } }
       ];
     }
 
-    let sortOption = {};
-    if (sort === 'price-low') sortOption.price = 1;
-    else if (sort === 'price-high') sortOption.price = -1;
-    else if (sort === 'rating') sortOption.rating = -1;
-    else sortOption.createdAt = -1;
+    if (category) {
+      filter.category = category;
+    }
 
-    const products = await Product.find(query)
-      .sort(sortOption)
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
+    let query = Product.find(filter);
 
-    const total = await Product.countDocuments(query);
+    // Sorting logic (optional)
+    if (sort === 'price-low') query = query.sort({ price: 1 });
+    else if (sort === 'price-high') query = query.sort({ price: -1 });
+    else if (sort === 'rating') query = query.sort({ rating: -1 });
+    else query = query.sort({ createdAt: -1 });
 
-    res.json({
-      products,
-      totalPages: Math.ceil(total / limit),
-      currentPage: page,
-      total
-    });
+    const products = await query.exec();
+    res.json({ products });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
@@ -115,6 +109,37 @@ exports.addReview = async (req, res) => {
 
     await product.save();
     res.json({ message: 'Review added successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+exports.updateProduct = async (req, res) => {
+  try {
+    const { name, description, price, category, stock } = req.body;
+    const update = {
+      name,
+      description,
+      price,
+      category,
+      stock
+    };
+    if (req.file) {
+      update.image = req.file.filename;
+    }
+    const product = await Product.findByIdAndUpdate(req.params.id, update, { new: true });
+    if (!product) return res.status(404).json({ message: 'Product not found' });
+    res.json(product);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+exports.deleteProduct = async (req, res) => {
+  try {
+    const product = await Product.findByIdAndDelete(req.params.id);
+    if (!product) return res.status(404).json({ message: 'Product not found' });
+    res.json({ message: 'Product deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }

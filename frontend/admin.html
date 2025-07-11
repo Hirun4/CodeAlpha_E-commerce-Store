@@ -69,6 +69,56 @@
                 <button type="submit" class="btn btn-primary">Add Product</button>
             </form>
             <div id="adminMessage"></div>
+
+            <h2>Manage Products</h2>
+            <div id="adminProducts"></div>
+
+            <!-- Edit Product Modal -->
+            <div class="modal" id="editProductModal" style="display:none;">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h3>Edit Product</h3>
+                  <span class="close" id="closeEditModal" style="cursor:pointer;">&times;</span>
+                </div>
+                <div class="modal-body">
+                  <form id="editProductForm" enctype="multipart/form-data">
+                    <input type="hidden" name="id" id="editProductId">
+                    <div class="form-group">
+                      <label>Name:</label>
+                      <input type="text" name="name" id="editName" required>
+                    </div>
+                    <div class="form-group">
+                      <label>Description:</label>
+                      <textarea name="description" id="editDescription" required></textarea>
+                    </div>
+                    <div class="form-group">
+                      <label>Price:</label>
+                      <input type="number" name="price" id="editPrice" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                      <label>Category:</label>
+                      <select name="category" id="editCategory" required>
+                        <option value="electronics">Electronics</option>
+                        <option value="clothing">Clothing</option>
+                        <option value="books">Books</option>
+                        <option value="home">Home</option>
+                        <option value="sports">Sports</option>
+                        <option value="beauty">Beauty</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label>Stock:</label>
+                      <input type="number" name="stock" id="editStock" min="0" required>
+                    </div>
+                    <div class="form-group">
+                      <label>Image:</label>
+                      <input type="file" name="image" id="editImage" accept="image/*">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Update Product</button>
+                  </form>
+                </div>
+              </div>
+            </div>
         </div>
     </main>
     <script src="js/api.js"></script>
@@ -108,11 +158,103 @@
             msgDiv.textContent = 'Product added successfully!';
             msgDiv.style.color = 'green';
             form.reset();
+            loadAdminProducts(); // Refresh product list
         } else {
             msgDiv.textContent = data.message || 'Failed to add product';
             msgDiv.style.color = 'red';
         }
     });
+
+    // Load products for admin
+    async function loadAdminProducts() {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        const res = await fetch('http://localhost:3000/api/products', {
+            headers: {
+                'Authorization': 'Bearer ' + token
+            }
+        });
+        const data = await res.json();
+        const adminProductsDiv = document.getElementById('adminProducts');
+        adminProductsDiv.innerHTML = '';
+
+        if (res.ok) {
+            adminProductsDiv.innerHTML = '<table style="width:100%;border-collapse:collapse;"><tr><th>Name</th><th>Category</th><th>Price</th><th>Stock</th><th>Actions</th></tr>' +
+                data.products.map(p => `
+                <tr>
+                    <td>${p.name}</td>
+                    <td>${p.category}</td>
+                    <td>$${p.price}</td>
+                    <td>${p.stock}</td>
+                    <td>
+                        <button onclick="showEditModal('${p._id}')">Edit</button>
+                        <button onclick="deleteProduct('${p._id}')">Delete</button>
+                    </td>
+                </tr>
+                `).join('') + '</table>';
+        } else {
+            adminProductsDiv.textContent = 'Failed to load products';
+        }
+    }
+    window.loadAdminProducts = loadAdminProducts; // Make global
+    loadAdminProducts();
+
+    // Edit modal logic
+    window.showEditModal = function(id) {
+        const token = localStorage.getItem('token');
+        fetch(`http://localhost:3000/api/products/${id}`, {
+            headers: {
+                'Authorization': 'Bearer ' + token
+            }
+        })
+        .then(res => res.json())
+        .then(product => {
+            document.getElementById('editProductId').value = product._id;
+            document.getElementById('editName').value = product.name;
+            document.getElementById('editDescription').value = product.description;
+            document.getElementById('editPrice').value = product.price;
+            document.getElementById('editCategory').value = product.category;
+            document.getElementById('editStock').value = product.stock;
+            document.getElementById('editProductModal').style.display = 'block';
+        });
+    };
+
+    document.getElementById('closeEditModal').onclick = () => {
+        document.getElementById('editProductModal').style.display = 'none';
+    };
+
+    document.getElementById('editProductForm').onsubmit = async function(e) {
+        e.preventDefault();
+        const id = document.getElementById('editProductId').value;
+        const formData = new FormData(this);
+        const token = localStorage.getItem('token');
+        const res = await fetch(`http://localhost:3000/api/products/${id}`, {
+            method: 'PUT',
+            headers: { 'Authorization': 'Bearer ' + token },
+            body: formData
+        });
+        if (res.ok) {
+            alert('Product updated!');
+            document.getElementById('editProductModal').style.display = 'none';
+            loadAdminProducts();
+        } else {
+            const data = await res.json();
+            alert(data.message || 'Update failed');
+        }
+    };
+
+    window.deleteProduct = async function(id) {
+        if (!confirm('Are you sure you want to delete this product?')) return;
+        const token = localStorage.getItem('token');
+        const res = await fetch(`http://localhost:3000/api/products/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await res.json();
+        alert(data.message || 'Deleted');
+        loadAdminProducts();
+    };
     </script>
 </body>
 </html>

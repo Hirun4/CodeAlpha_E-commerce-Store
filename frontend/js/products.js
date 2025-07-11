@@ -5,10 +5,16 @@ async function loadProducts() {
     if (!grid) return;
     loading.style.display = '';
     let url = '/products?';
+
+    // Get search and filter values
+    const search = document.getElementById('searchInput')?.value.trim();
     const category = document.getElementById('categoryFilter')?.value;
     const sort = document.getElementById('sortFilter')?.value;
-    if (category) url += `category=${category}&`;
-    if (sort) url += `sort=${sort}&`;
+
+    if (search) url += `search=${encodeURIComponent(search)}&`;
+    if (category) url += `category=${encodeURIComponent(category)}&`;
+    if (sort) url += `sort=${encodeURIComponent(sort)}&`;
+
     const res = await apiRequest(url);
     grid.innerHTML = '';
     res.products?.forEach(product => {
@@ -28,6 +34,10 @@ async function loadProducts() {
     });
     loading.style.display = 'none';
 }
+document.getElementById('searchBtn')?.addEventListener('click', loadProducts);
+document.getElementById('searchInput')?.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') loadProducts();
+});
 document.getElementById('categoryFilter')?.addEventListener('change', loadProducts);
 document.getElementById('sortFilter')?.addEventListener('change', loadProducts);
 if (document.getElementById('productsGrid')) loadProducts();
