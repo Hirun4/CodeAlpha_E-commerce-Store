@@ -144,3 +144,32 @@ exports.deleteProduct = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
+
+exports.deleteReview = async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ message: 'Product not found' });
+
+    const reviewIndex = product.reviews.findIndex(
+      review => review.user.toString() === req.user.userId
+    );
+    if (reviewIndex === -1) {
+      return res.status(404).json({ message: 'Review not found' });
+    }
+
+    product.reviews.splice(reviewIndex, 1);
+
+    // Update average rating
+    if (product.reviews.length > 0) {
+      const totalRating = product.reviews.reduce((sum, review) => sum + review.rating, 0);
+      product.rating = totalRating / product.reviews.length;
+    } else {
+      product.rating = 0;
+    }
+
+    await product.save();
+    res.json({ message: 'Review deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};

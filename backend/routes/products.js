@@ -10,5 +10,6 @@ router.post('/', auth, admin, productController.uploadMiddleware, productControl
 router.put('/:id', auth, admin, productController.uploadMiddleware, productController.updateProduct);
 router.delete('/:id', auth, admin, productController.deleteProduct);
 router.post('/:id/reviews', auth, productController.addReview);
+router.delete('/:id/reviews', auth, productController.deleteReview);
 
 module.exports = router;
