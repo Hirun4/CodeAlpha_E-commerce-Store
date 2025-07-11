@@ -15,10 +15,9 @@
                 <h2>E-Store</h2>
             </div>
             <div class="nav-menu">
-                <a href="#" class="nav-link">Home</a>
-                <a href="#" class="nav-link">Products</a>
-                <a href="#" class="nav-link">About</a>
-                <a href="#" class="nav-link">Contact</a>
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="cart.html" class="nav-link">Cart</a>
+                <a href="admin.html" class="nav-link" style="display:none;">Admin</a>
             </div>
             <div class="nav-actions">
                 <div class="search-container">
@@ -115,5 +114,24 @@
     <script src="js/products.js"></script>
     <script src="js/cart.js"></script>
     <script src="js/main.js"></script>
+    <script>
+        async function showUserInfo() {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+            const res = await apiRequest('/auth/profile', 'GET', null, true);
+            if (res && res.name) {
+                document.getElementById('userInfo').style.display = '';
+                document.getElementById('userName').textContent = res.name;
+                document.getElementById('authButtons').style.display = 'none';
+                // Show admin link if user is admin
+                if (res.role === 'admin') {
+                    document.querySelectorAll('.nav-link[href="admin.html"]').forEach(link => link.style.display = '');
+                } else {
+                    document.querySelectorAll('.nav-link[href="admin.html"]').forEach(link => link.style.display = 'none');
+                }
+            }
+        }
+        showUserInfo();
+    </script>
 </body>
 </html>

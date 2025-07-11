@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Panel - Add Product</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/products.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <h2><a href="index.html">E-Store</a></h2>
+            </div>
+            <div class="nav-menu">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="cart.html" class="nav-link">Cart</a>
+                <a href="admin.html" class="nav-link">Admin</a>
+            </div>
+            <div class="nav-actions">
+                <div class="user-menu" id="userMenu">
+                    <div class="user-info" id="userInfo" style="display: none;">
+                        <span id="userName"></span>
+                        <button id="logoutBtn">Logout</button>
+                    </div>
+                    <div class="auth-buttons" id="authButtons">
+                        <a href="login.html" class="btn btn-outline">Login</a>
+                        <a href="register.html" class="btn btn-primary">Register</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <main class="main-content">
+        <div class="container">
+            <h2>Add New Product</h2>
+            <form id="addProductForm" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label>Name:</label>
+                    <input type="text" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label>Description:</label>
+                    <textarea name="description" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Price:</label>
+                    <input type="number" name="price" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label>Category:</label>
+                    <select name="category" required>
+                        <option value="electronics">Electronics</option>
+                        <option value="clothing">Clothing</option>
+                        <option value="books">Books</option>
+                        <option value="home">Home</option>
+                        <option value="sports">Sports</option>
+                        <option value="beauty">Beauty</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Stock:</label>
+                    <input type="number" name="stock" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label>Image:</label>
+                    <input type="file" name="image" accept="image/*" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Add Product</button>
+            </form>
+            <div id="adminMessage"></div>
+        </div>
+    </main>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+    // Only allow admin (you can enhance this by checking user role from /auth/profile)
+    document.addEventListener('DOMContentLoaded', () => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            alert('Please login as admin.');
+            window.location.href = 'login.html';
+        }
+    });
+
+    document.getElementById('addProductForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const form = e.target;
+        const formData = new FormData(form);
+
+        const token = localStorage.getItem('token');
+        if (!token) {
+            alert('Please login as admin.');
+            window.location.href = 'login.html';
+            return;
+        }
+
+        const res = await fetch('http://localhost:3000/api/products', {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + token
+            },
+            body: formData
+        });
+        const data = await res.json();
+        const msgDiv = document.getElementById('adminMessage');
+        if (res.ok) {
+            msgDiv.textContent = 'Product added successfully!';
+            msgDiv.style.color = 'green';
+            form.reset();
+        } else {
+            msgDiv.textContent = data.message || 'Failed to add product';
+            msgDiv.style.color = 'red';
+        }
+    });
+    </script>
+</body>
+</html>

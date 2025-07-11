@@ -18,7 +18,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Database connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/ecommerce', {
+mongoose.connect(process.env.MONGODB_URI || 'mongodb+srv://hirun08072002:Hirun500ghi@cluster0.rhymjx4.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });

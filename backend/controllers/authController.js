@@ -2,8 +2,8 @@ const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
 
-const generateToken = (userId) => {
-  return jwt.sign({ userId }, process.env.JWT_SECRET || 'your-secret-key', {
+const generateToken = (userId, role) => {
+  return jwt.sign({ userId, role }, process.env.JWT_SECRET || 'your-secret-key', {
     expiresIn: '7d'
   });
 };
@@ -15,7 +15,7 @@ exports.register = async (req, res) => {
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { name, email, password, phone, address } = req.body;
+    const { name, email, password, phone, address, role } = req.body;
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -27,12 +27,13 @@ exports.register = async (req, res) => {
       email,
       password,
       phone,
-      address
+      address,
+      role: role === 'admin' ? 'admin' : 'user'
     });
 
     await user.save();
 
-    const token = generateToken(user._id);
+    const token = generateToken(user._id, user.role);
 
     res.status(201).json({
       message: 'User created successfully',
@@ -40,7 +41,8 @@ exports.register = async (req, res) => {
       user: {
         id: user._id,
         name: user.name,
-        email: user.email
+        email: user.email,
+        role: user.role
       }
     });
   } catch (error) {
@@ -62,7 +64,7 @@ exports.login = async (req, res) => {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    const token = generateToken(user._id);
+    const token = generateToken(user._id, user.role);
 
     res.json({
       message: 'Login successful',
@@ -70,7 +72,8 @@ exports.login = async (req, res) => {
       user: {
         id: user._id,
         name: user.name,
-        email: user.email
+        email: user.email,
+        role: user.role
       }
     });
   } catch (error) {

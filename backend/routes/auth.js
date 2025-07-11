@@ -3,6 +3,8 @@ const router = express.Router();
 const { body } = require('express-validator');
 const authController = require('../controllers/authController');
 const auth = require('../middleware/auth');
+const admin = require('../middleware/admin');
+const productController = require('../controllers/productController');
 
 router.post('/register', [
   body('name').notEmpty().withMessage('Name is required'),
@@ -13,5 +15,7 @@ router.post('/register', [
 router.post('/login', authController.login);
 
 router.get('/profile', auth, authController.getProfile);
+
+router.post('/', auth, admin, productController.uploadMiddleware, productController.createProduct);
 
 module.exports = router;
