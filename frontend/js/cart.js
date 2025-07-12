@@ -21,7 +21,9 @@ async function loadCart() {
     const cartItems = document.getElementById('cartItems');
     const subtotal = document.getElementById('subtotal');
     const total = document.getElementById('total');
-    const checkoutBtn = document.getElementById('checkoutBtn'); // Get the checkout button
+    const checkoutBtn = document.getElementById('checkoutBtn');
+    const cartSummary = document.getElementById('cartSummary'); // <-- get the summary box
+
     if (!cartItems) return;
     cartItems.innerHTML = '';
     let sum = 0;
@@ -35,16 +37,15 @@ async function loadCart() {
         `;
         if (subtotal) subtotal.textContent = '$0.00';
         if (total) total.textContent = '$10.00';
-        // Hide checkout button
         if (checkoutBtn) checkoutBtn.style.display = 'none';
-        // Add event listener for continue shopping
+        if (cartSummary) cartSummary.style.display = 'none'; // <-- hide summary
         document.getElementById('continueShoppingBtn').onclick = function() {
             window.location.href = 'index.html#productsGrid';
         };
         return;
     } else {
-        // Show checkout button
         if (checkoutBtn) checkoutBtn.style.display = '';
+        if (cartSummary) cartSummary.style.display = ''; // <-- show summary
     }
 
     res.items.forEach(item => {
