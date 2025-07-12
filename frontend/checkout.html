@@ -24,6 +24,10 @@
                     <form id="checkoutForm">
                         <div class="form-section">
                             <h3>Shipping Information</h3>
+                            <div class="form-group">
+                                <label for="title">Shipping Title (e.g. Home, Office):</label>
+                                <input type="text" id="title" name="title" required>
+                            </div>
                             <div class="form-row">
                                 <div class="form-group">
                                     <label for="street">Street Address:</label>
@@ -112,6 +116,16 @@
                     }
                 });
             });
+
+            // Fetch user profile for shipping info
+            const userRes = await apiRequest('/auth/profile', 'GET', null, true);
+            if (userRes && userRes.shippingInfo && userRes.shippingInfo.street) {
+                document.getElementById('title').value = userRes.shippingInfo.title || '';
+                document.getElementById('street').value = userRes.shippingInfo.street || '';
+                document.getElementById('city').value = userRes.shippingInfo.city || '';
+                document.getElementById('zipCode').value = userRes.shippingInfo.zipCode || '';
+                document.getElementById('country').value = userRes.shippingInfo.country || '';
+            }
         });
 
         document.getElementById('checkoutForm')?.addEventListener('submit', async function(e) {
@@ -176,6 +190,24 @@
                 alert(res.message || 'Order failed');
             }
         });
+
+        document.getElementById('updateShippingBtn').addEventListener('click', async function() {
+    const title = document.getElementById('title').value;
+    const street = document.getElementById('street').value;
+    const city = document.getElementById('city').value;
+    const zipCode = document.getElementById('zipCode').value;
+    const country = document.getElementById('country').value;
+    if (!title || !street || !city || !zipCode || !country) {
+        alert('Please fill all shipping fields.');
+        return;
+    }
+    const res = await apiRequest('/auth/shipping-info', 'PUT', { title, street, city, zipCode, country }, true);
+    if (res && res.shippingInfo) {
+        alert('Shipping info updated!');
+    } else {
+        alert(res.message || 'Failed to update shipping info');
+    }
+});
     </script>
 </body>
 </html>

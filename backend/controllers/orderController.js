@@ -1,6 +1,7 @@
 const Order = require('../models/Order');
 const Cart = require('../models/Cart');
 const Product = require('../models/Product');
+const User = require('../models/User');
 
 exports.createOrder = async (req, res) => {
   try {
@@ -36,6 +37,18 @@ exports.createOrder = async (req, res) => {
     });
 
     await order.save();
+
+    const user = await User.findById(req.user.userId);
+    if (!user.shippingInfo || !user.shippingInfo.street) {
+      user.shippingInfo = {
+        title: req.body.title || '',
+        street: shippingAddress.street,
+        city: shippingAddress.city,
+        zipCode: shippingAddress.zipCode,
+        country: shippingAddress.country
+      };
+      await user.save();
+    }
 
     // Update product stock
     for (let item of cart.items) {
@@ -85,3 +98,17 @@ exports.getOrderById = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
+
+// exports.updateShippingInfo = async (req, res) => {
+//   try {
+//     const { title, street, city, zipCode, country } = req.body;
+//     const user = await User.findByIdAndUpdate(
+//       req.user.userId,
+//       { shippingInfo: { title, street, city, zipCode, country } },
+//       { new: true }
+//     );
+//     res.json({ message: 'Shipping info updated', shippingInfo: user.shippingInfo });
+//   } catch (error) {
+//     res.status(500).json({ message: 'Server error', error: error.message });
+//   }
+// };

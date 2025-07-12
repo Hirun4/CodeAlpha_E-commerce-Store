@@ -16,6 +16,8 @@ router.post('/login', authController.login);
 
 router.get('/profile', auth, authController.getProfile);
 
+router.put('/shipping-info', auth, authController.updateShippingInfo);
+
 router.post('/', auth, admin, productController.uploadMiddleware, productController.createProduct);
 
 module.exports = router;

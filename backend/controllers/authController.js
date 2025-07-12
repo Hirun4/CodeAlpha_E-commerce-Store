@@ -89,3 +89,17 @@ exports.getProfile = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
+
+exports.updateShippingInfo = async (req, res) => {
+  try {
+    const { title, street, city, zipCode, country } = req.body;
+    const user = await User.findByIdAndUpdate(
+      req.user.userId,
+      { shippingInfo: { title, street, city, zipCode, country } },
+      { new: true }
+    );
+    res.json({ message: 'Shipping info updated', shippingInfo: user.shippingInfo });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
