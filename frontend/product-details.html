@@ -57,6 +57,11 @@
                 loadProductDetails(productId);
             }
         });
+
+        // Navigate to cart page when cart icon is clicked
+        document.getElementById('cartIcon')?.addEventListener('click', function() {
+            window.location.href = 'cart.html';
+        });
     </script>
 </body>
 </html>

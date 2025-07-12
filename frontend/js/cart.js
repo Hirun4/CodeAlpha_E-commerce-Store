@@ -21,10 +21,33 @@ async function loadCart() {
     const cartItems = document.getElementById('cartItems');
     const subtotal = document.getElementById('subtotal');
     const total = document.getElementById('total');
+    const checkoutBtn = document.getElementById('checkoutBtn'); // Get the checkout button
     if (!cartItems) return;
     cartItems.innerHTML = '';
     let sum = 0;
-    res.items?.forEach(item => {
+
+    if (!res.items || res.items.length === 0) {
+        cartItems.innerHTML = `
+            <div style="text-align:center; padding:2rem;">
+                <p style="font-size:1.2rem; color:#888;">No items added to your cart.</p>
+                <button class="btn btn-primary" id="continueShoppingBtn">Continue Shopping</button>
+            </div>
+        `;
+        if (subtotal) subtotal.textContent = '$0.00';
+        if (total) total.textContent = '$10.00';
+        // Hide checkout button
+        if (checkoutBtn) checkoutBtn.style.display = 'none';
+        // Add event listener for continue shopping
+        document.getElementById('continueShoppingBtn').onclick = function() {
+            window.location.href = 'index.html#productsGrid';
+        };
+        return;
+    } else {
+        // Show checkout button
+        if (checkoutBtn) checkoutBtn.style.display = '';
+    }
+
+    res.items.forEach(item => {
         cartItems.innerHTML += `
         <div class="cart-item">
             <img src="http://localhost:3000/uploads/${item.product.image}" class="cart-item-image">
