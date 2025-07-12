@@ -87,8 +87,96 @@
     <script src="js/auth.js"></script>
     <script src="js/cart.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        // Instead of hardcoding, fetch from backend
+        let stripe, elements, card;
+
+        document.addEventListener('DOMContentLoaded', async function() {
             loadOrderSummary();
+
+            // Fetch publishable key from backend
+            const keyRes = await fetch('http://localhost:3000/api/stripe/publishable-key');
+            const { key: publishableKey } = await keyRes.json();
+
+            if (document.getElementById('card-element')) {
+                stripe = Stripe(publishableKey);
+                elements = stripe.elements();
+                card = elements.create('card');
+                card.mount('#card-element');
+            }
+
+            // Show/hide card element based on payment method
+            document.querySelectorAll('input[name="paymentMethod"]').forEach(el => {
+                el.addEventListener('change', function() {
+                    if (this.value === 'debit_card') {
+                        document.getElementById('card-element').style.display = '';
+                    } else {
+                        document.getElementById('card-element').style.display = 'none';
+                    }
+                });
+            });
+        });
+
+        document.getElementById('checkoutForm')?.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const shippingAddress = {
+                street: this.street.value,
+                city: this.city.value,
+                zipCode: this.zipCode.value,
+                country: this.country.value
+            };
+            const paymentMethod = this.paymentMethod.value;
+
+            if (paymentMethod === 'debit_card') {
+                // Get cart total
+                const cartRes = await apiRequest('/cart', 'GET', null, true);
+                let amount = cartRes.items.reduce((sum, item) => sum + item.product.price * item.quantity, 0) + 10;
+                amount = Math.round(amount * 100); // Stripe expects cents
+
+                // Create payment intent
+                const intentRes = await fetch('http://localhost:3000/api/stripe/create-payment-intent', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount, currency: 'usd' }) // or 'lkr' if enabled
+                });
+                const { clientSecret } = await intentRes.json();
+
+                // Confirm card payment
+                const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+                    payment_method: {
+                        card: card,
+                    }
+                });
+
+                if (error) {
+                    document.getElementById('card-errors').textContent = error.message;
+                    return;
+                }
+
+                // Place order in backend
+                const res = await apiRequest('/orders', 'POST', {
+                    shippingAddress,
+                    paymentMethod: 'debit_card',
+                    stripePaymentIntentId: paymentIntent.id
+                }, true);
+
+                if (res && res.order) {
+                    alert('Order placed successfully!');
+                    window.location.href = 'index.html';
+                } else {
+                    alert(res.message || 'Order failed');
+                }
+                return;
+            }
+
+            // Cash on Delivery
+            const res = await apiRequest('/orders', 'POST', { shippingAddress, paymentMethod }, true);
+            if (res && res.order) {
+                alert('Order placed successfully!');
+                window.location.href = 'index.html';
+            } else {
+                alert(res.message || 'Order failed');
+            }
         });
     </script>
 </body>
