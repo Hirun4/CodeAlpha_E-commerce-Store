@@ -49,24 +49,21 @@
                         <div class="form-section">
                             <h3>Payment Method</h3>
                             <div class="payment-options">
-                                <label class="radio-label">
-                                    <input type="radio" name="paymentMethod" value="credit_card" checked>
-                                    Credit Card
-                                </label>
+                                
                                 <label class="radio-label">
                                     <input type="radio" name="paymentMethod" value="debit_card">
                                     Debit Card
                                 </label>
-                                <label class="radio-label">
-                                    <input type="radio" name="paymentMethod" value="paypal">
-                                    PayPal
-                                </label>
+                               
                                 <label class="radio-label">
                                     <input type="radio" name="paymentMethod" value="cash_on_delivery">
                                     Cash on Delivery
                                 </label>
                             </div>
                         </div>
+
+                        <div id="card-element" style="margin-bottom:1rem; display:none;"></div>
+                        <div id="card-errors" style="color:#e53e3e; margin-bottom:1rem;"></div>
 
                         <button type="submit" class="btn btn-primary">Place Order</button>
                     </form>
@@ -83,6 +80,7 @@
         </div>
     </main>
 
+    <script src="https://js.stripe.com/v3/"></script>
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/cart.js"></script>
